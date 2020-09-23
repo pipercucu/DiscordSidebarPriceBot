@@ -63,12 +63,16 @@ bot.on('ready', () => {
 
 async function getPrice() {
   let data = await coinGeckoCmds.getPrice([TICKER]);
-  let currPrice = data.found[TICKER].usd;
-  let change24H = Math.ceil(data.found[TICKER].usd_24h_change * 100) / 100;
-  let changeArrow = change24H > 0 ? '(↗)' : (change24H < 0 ? '(↘)' : '(→)');
-  bot.user.setActivity(`24h: ${change24H}%`);
-  bot.guilds.cache.each(guild => guild.me.setNickname(`${TICKER} $${currPrice} ${changeArrow}`));
-  console.log(`${TICKER} $${currPrice} ${change24H}%`);
+  let foundTokenKeys = Object.keys(data.found);
+  foundTokenKeys.forEach(key => {
+    let tokenData = data.found[key];
+    let currPrice = tokenData.usd;
+    let change24H = Math.ceil(tokenData.usd_24h_change * 100) / 100;
+    let changeArrow = change24H > 0 ? '(↗)' : (change24H < 0 ? '(↘)' : '(→)');
+    bot.user.setActivity(`24h: ${change24H}%`);
+    bot.guilds.cache.each(guild => guild.me.setNickname(`${key} $${currPrice} ${changeArrow}`));
+    console.log(`${key} $${currPrice} ${change24H}%`);
+  });
 }
 
 // Get token index from args, default to 0
