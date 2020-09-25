@@ -5,5 +5,6 @@
     "token 2",
     "token 3",
     "etc"
-  ]
+  ],
+  "etherscanToken": "token 0"
 }
