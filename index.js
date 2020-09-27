@@ -80,7 +80,7 @@ bot.on('ready', () => {
 });
 
 async function getPrice() {
-  if (TICKER === '⛽') {
+  if (TICKER === 'ETHEREUMGASTICKER' || TICKER === '⛽') {
     getGas();
     return;
   }
@@ -112,8 +112,13 @@ async function getPrice() {
       let currPrice = priceData[priceData.ticker].currPrice / priceData[comparison].currPrice;
       let pastPrice = priceData[priceData.ticker].pastPrice / priceData[comparison].pastPrice;
       let change24H = ((currPrice - pastPrice) / pastPrice * 100).toFixed(2);
+      if (comparison === 'BTC' && currPrice < 0.00001) {
+        currPrice = (currPrice * 100000000).toFixed(0) + 'sat';
+      } else {
+        currPrice = currPrice.toFixed(5);
+      }
       priceData[priceData.ticker + comparison] = {
-        currPrice: currPrice.toFixed(5),
+        currPrice: currPrice,
         pastPrice: pastPrice,
         change24H: change24H,
         changeArrow: change24H > 0 ? '(↗)' : (change24H < 0 ? '(↘)' : '(→)')
