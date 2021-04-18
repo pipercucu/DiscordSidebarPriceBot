@@ -25,8 +25,7 @@
 const auth = require('./auth.json');
 const coinGeckoCmds = require('./coinGeckoCmds.js');
 const Discord = require('discord.js');
-const http = require('http');
-
+const rp = require('request-promise');
 const bot = new Discord.Client();
 
 let UPDATE_INTERVAL;  // Price update interval in milliseconds
@@ -165,42 +164,21 @@ function showPrice() {
 }
 
 function getGas() {
-  http.get(`http://api.etherscan.io/api?module=gastracker&action=gasoracle&apikey=${auth.etherscanToken}`, (res) => {
-    const { statusCode } = res;
-    const contentType = res.headers['content-type'];
-
-    let error;
-    // Any 2xx status code signals a successful response but
-    // here we're only checking for 200.
-    if (statusCode !== 200) {
-      error = new Error('Request Failed.\n' +
-                        `Status Code: ${statusCode}`);
-    } else if (!/^application\/json/.test(contentType)) {
-      error = new Error('Invalid content-type.\n' +
-                        `Expected application/json but received ${contentType}`);
-    }
-    if (error) {
-      console.error(error.message);
-      // Consume response data to free up memory
-      res.resume();
-      return;
-    }
-
-    res.setEncoding('utf8');
-    let rawData = '';
-    res.on('data', (chunk) => { rawData += chunk; });
-    res.on('end', () => {
+  rp(`https://www.gasnow.org/api/v3/gas/price?utm_source=:${auth.appName}`)
+    .then(res => {
       try {
-        const parsedData = JSON.parse(rawData);
-        guildMeCache.forEach(guildMe => guildMe.setNickname(`⚡${parsedData.result.FastGasPrice} gwei`));
-        bot.user.setActivity(`🚶${parsedData.result.ProposeGasPrice} 🐢${parsedData.result.SafeGasPrice}`);
+        const parsedData = JSON.parse(res);
+        const rapid = parsedData.data.rapid / 1000000000;
+        const standard = parsedData.data.standard / 1000000000;
+        const slow = parsedData.data.slow / 1000000000;
+        guildMeCache.forEach(guildMe => guildMe.setNickname(`⚡${rapid.toFixed(0)} gwei`));
+        bot.user.setActivity(`🚶${standard.toFixed(0)} 🐢${slow.toFixed(0)}`);
       } catch (e) {
         console.error(e.message);
       }
+    }).catch((e) => {
+      console.error(`Got error: ${e.message}`);
     });
-  }).on('error', (e) => {
-    console.error(`Got error: ${e.message}`);
-  });
 }
 
 // Get token index from args, default to 0
@@ -210,5 +188,11 @@ if (typeof process.argv[4] !== 'undefined') {
 else {
   TOKEN_INDEX = 0;
 }
+
+// New server join event that causes the guild cache to refresh
+bot.on('guildCreate', guild => {
+  bot.guilds.cache.each(guild => guildMeCache.push(guild.me));
+  console.log(`New server has added the bot! Name: ${guild.name}`);
+});
 
 bot.login(auth.discordBotTokens[TOKEN_INDEX]);
