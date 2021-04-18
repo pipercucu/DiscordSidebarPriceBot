@@ -211,4 +211,10 @@ else {
   TOKEN_INDEX = 0;
 }
 
+// New server join event that causes the guild cache to refresh
+bot.on('guildCreate', guild => {
+  bot.guilds.cache.each(guild => guildMeCache.push(guild.me));
+  console.log(`New server has added the bot! Name: ${guild.name}`);
+});
+
 bot.login(auth.discordBotTokens[TOKEN_INDEX]);
