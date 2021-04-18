@@ -6,5 +6,5 @@
     "token 3",
     "etc"
   ],
-  "etherscanToken": "token 0"
+  "appName": "a name for your gas client (this isn't actually a token)"
 }
