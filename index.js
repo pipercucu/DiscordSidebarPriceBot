@@ -162,22 +162,25 @@ function showPrice() {
   }
 }
 
-function getGas() {
-  rp(`https://www.gasnow.org/api/v3/gas/price?utm_source=:${auth.appName}`)
-    .then(res => {
-      try {
-        const parsedData = JSON.parse(res);
-        const rapid = parsedData.data.rapid / 1000000000;
-        const standard = parsedData.data.standard / 1000000000;
-        const slow = parsedData.data.slow / 1000000000;
-        guildMeCache.forEach(guildMe => guildMe.setNickname(`⚡${rapid.toFixed(0)} gwei`));
-        bot.user.setActivity(`🚶${standard.toFixed(0)} 🐢${slow.toFixed(0)}`);
-      } catch (e) {
-        console.error(e.message);
-      }
-    }).catch((e) => {
-      console.error(`Got error: ${e.message}`);
+async function getGas() {
+  const res = await fetch(`https://api.etherscan.io/api?module=gastracker&action=gasoracle&apikey=${auth.etherscan}`)
+    .catch(function (error) {
+      // handle fetch error
+      console.error('Error encountered during fetch for Etherscan gas command:', error);
     });
+  if (res.ok) {
+    const data = await res.json();
+    try {
+      // grab gas readings and update the bot client and guilds
+      const rapid = data.result.FastGasPrice;
+      const standard = data.result.ProposeGasPrice;
+      const slow = data.result.SafeGasPrice;
+      guildMeCache.forEach(guildMe => guildMe.setNickname(`⚡${rapid} gwei`));
+      bot.user.setActivity(`🚶${standard} 🐢${slow}`);
+    } catch (e) {
+      console.error(e.message);
+    }
+  }
 }
 
 // Get token index from args, default to 0
