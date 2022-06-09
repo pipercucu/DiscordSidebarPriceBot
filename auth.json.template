@@ -6,5 +6,5 @@
     "token 3",
     "etc"
   ],
-  "appName": "a name for your gas client (this isn't actually a token)"
+  "etherscan": "put your etherscan API token here!"
 }
