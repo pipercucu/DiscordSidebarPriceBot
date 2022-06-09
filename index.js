@@ -24,9 +24,8 @@
 
 const auth = require('./auth.json');
 const coinGeckoCmds = require('./coinGeckoCmds.js');
-const Discord = require('discord.js');
-const rp = require('request-promise');
-const bot = new Discord.Client();
+const { Client, Intents } = require('discord.js');
+const bot = new Client({ intents: [Intents.FLAGS.GUILDS], shards: 'auto' });
 
 let UPDATE_INTERVAL;  // Price update interval in milliseconds
 let TICKER;           // Which ticker to pull price for
